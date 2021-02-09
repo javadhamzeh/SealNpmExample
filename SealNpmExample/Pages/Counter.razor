@@ -1,0 +1,206 @@
+﻿@page "/counter"
+@inject IJSRuntime JSRuntime;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject Blazored.LocalStorage.ILocalStorageService bfvStopWatchStorage;
+@inject NavigationManager uriHelper;
+@using System.Threading;
+@using System.Diagnostics;
+@using System.Collections.Generic;
+@using System.Linq;
+@using System.Text;
+@using System.Runtime.InteropServices;
+@using System.Collections;
+@using System.Collections.Specialized;
+@using System.Management;
+@using System.Runtime.Versioning;
+
+
+<h1>BFV ENCRYPTION!</h1>
+
+<br />
+<button class="btn btn-primary" @onclick="BFV">BFV Encryption</button>
+<button class="btn btn-primary" @onclick="ClearLocalStorage">Clear</button>
+
+<br />
+<br />
+<div style="color:red; font-size:20px; font-weight:bold;font-family:'Orbitron'">@elapsedTime</div>
+@if (sValue != null)
+{
+    <p style="color:red;font-size:20px; font-weight:bold; font-family:'Orbitron'"><span style="font-weight:bold">Memory Usage: </span>@sValue[45] GB</p>
+}
+@if (bValue == true)
+{
+    <img src="/Image/example-trefoil.gif" />
+}
+
+@if (sValue != null)
+{
+    <table class="styled-table table-bordered">
+        <caption style="text-align:center">Average</caption>
+        <thead>
+            <tr>
+                <td>polyModulusDegree</td>
+                <td>encode</td>
+                <td>decode</td>
+                <td>encrypt</td>
+                <td>decrypt</td>
+                <td>add</td>
+                <td>multiply</td>
+                <td>multiply plain</td>
+                <td>square</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>4096</td>
+                @foreach (var item in sValue[0..8])
+                {
+                    @if (item != null)
+                    {
+                        <td>@item <span>&#181</span>s</td>
+                    }
+                }
+            </tr>
+            <tr>
+                <td>81192</td>
+                @foreach (var item in sValue[15..23])
+                {
+                    @if (item != null)
+                    {
+                        <td>@item <span>&#181</span>s</td>
+                    }
+                }
+            </tr>
+            <tr>
+                <td>16384</td>
+                @foreach (var item in sValue[30..38])
+                {
+                    @if (item != null)
+                    {
+                        <td>@item <span>&#181</span>s</td>
+                    }
+                }
+            </tr>
+        </tbody>
+    </table>
+    <table class="styled-table table-bordered">
+        <caption style="text-align:center">Average</caption>
+        <thead>
+            <tr>
+                <td>polyModulusDegree</td>
+                <td>Relinearize</td>
+                <td>RotateRowOneStep</td>
+                <td>RotateRowRandom</td>
+                <td>RotateColumn</td>
+                <td>SumElements</td>
+                <td>DotProduct</td>
+                <td>DotProductPlain</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>4096</td>
+                @foreach (var item in sValue[8..15])
+                {
+                    @if (item != null)
+                    {
+                        <td>@item <span>&#181</span>s</td>
+                    }
+                }
+            </tr>
+            <tr>
+                <td>81192</td>
+                @foreach (var item in sValue[23..30])
+                {
+                    @if (item != null)
+                    {
+                        <td>@item <span>&#181</span>s</td>
+                    }
+                }
+            </tr>
+            <tr>
+                <td>16384</td>
+                @foreach (var item in sValue[38..45])
+                {
+                    @if (item != null)
+                    {
+                        <td>@item <span>&#181</span>s</td>
+                    }
+                }
+            </tr>
+        </tbody>
+    </table>
+
+}
+
+@code {
+    public string result = null;
+    public bool bValue = false;
+    public string[] sValue = new string[46];
+    public string elapsedTime = "";
+    public static UInt64 Capacity = 0;
+
+    //private static PerformanceCounter perfCPUCounter = new PerformanceCounter("Processor Information", "% Processor Time", "_Total");
+    //PerformanceCounter perfMemCounter = new PerformanceCounter("Memory", "Available MBytes");
+    //public string osName = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+
+    //[SupportedOSPlatform("windows")]
+    //string sbValue = memCheck();
+
+    public async Task BFV()
+    {
+        Console.WriteLine(GC.GetGCMemoryInfo().ToString());
+        bValue = true;
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        result = await JSRuntime.InvokeAsync<string>("BFV_Encryption");
+
+        if (result != null)
+        {
+            sValue = result.Split(',', '\n');
+            await localStorage.SetItemAsync("avgBatch", sValue);
+            sValue = await localStorage.GetItemAsync<string[]>("avgBatch");
+            stopwatch.Stop();
+            TimeSpan ts = stopwatch.Elapsed;
+            elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+               ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            await bfvStopWatchStorage.SetItemAsync("bfvStopWatch", elapsedTime);
+            elapsedTime = await bfvStopWatchStorage.GetItemAsync<string>("bfvStopWatch");
+            Console.WriteLine(GC.GetTotalMemory(true));
+        }
+
+        bValue = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        sValue = await localStorage.GetItemAsync<string[]>("avgBatch");
+        elapsedTime = await bfvStopWatchStorage.GetItemAsync<string>("bfvStopWatch");
+    }
+
+    public async void ClearLocalStorage()
+    {
+        await localStorage.ClearAsync();
+        var timer = new Timer(new TimerCallback(_ =>
+        {
+            uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);
+
+        }), null, 500, 500);
+    }
+
+    //[SupportedOSPlatform("windows")]
+    //public void memCheck()
+    //{
+
+    //    string Query = "SELECT Capacity FROM Win32_PhysicalMemory";
+    //    ManagementObjectSearcher searcher = new ManagementObjectSearcher(Query);
+    //    foreach (ManagementObject WniPART in searcher.Get())
+    //    {
+    //        Capacity += Convert.ToUInt64(WniPART.Properties["Capacity"].Value);
+    //    }
+
+    //    Console.WriteLine(Math.Round((double)Capacity / 1048576, 0) + " MB");
+    //}
+}
+

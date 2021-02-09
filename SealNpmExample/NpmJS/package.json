@@ -1,0 +1,46 @@
+{
+  "name": "NpmJS",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "target": "node",
+  "scripts": {
+    "build": "webpack ./src/index.js --output-path ../wwwroot/js --output-filename index.bundle.js"
+  },
+  "node": {
+    "fs": "empty"
+  },
+  "browser": {
+    "fs": "false"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^2.7.0",
+    "webpack-cli": "^4.4.0",
+    "webpack-dashboard": "^3.3.1",
+    "webpack-monitor": "^1.0.14"
+  },
+  "dependencies": {
+    "add": "^2.0.6",
+    "file-system": "^2.2.2",
+    "fs": "0.0.1-security",
+    "fs-browser": "^1.0.0",
+    "fs-extra": "^9.1.0",
+    "js-meter": "^1.1.4",
+    "memory-usage": "^1.2.1",
+    "node-process": "^1.0.1",
+    "node-seal": "^4.5.2",
+    "node.js": "0.0.1-security",
+    "nodejs-system-info": "^1.0.6",
+    "os": "^0.1.1",
+    "os-utils": "0.0.14",
+    "performance": "^1.4.0",
+    "process": "^0.11.10",
+    "process-env": "^2.0.2",
+    "process-utils": "^4.0.0",
+    "runtime": "^0.14.1",
+    "util": "^0.12.3"
+  }
+}
